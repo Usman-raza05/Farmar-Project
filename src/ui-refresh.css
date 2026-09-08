@@ -1,0 +1,454 @@
+/* Farmly visual refresh — UI only. Existing content and application logic stay untouched. */
+
+:root {
+  --farmly-green: #176b45;
+  --farmly-green-2: #4caf50;
+  --farmly-green-dark: #104b31;
+  --farmly-gold: #e7a928;
+  --farmly-paper: #f7f9f4;
+  --farmly-ink: #1f2933;
+  --farmly-line: #e3e8e3;
+  --farmly-ease: cubic-bezier(.22, 1, .36, 1);
+}
+
+body {
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(231, 169, 40, .24);
+  color: var(--farmly-ink);
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(231, 169, 40, .34);
+  outline-offset: 3px;
+}
+
+/* Soft page entrance */
+.page-shell,
+.onboarding-page,
+.dashboard-page {
+  animation: farmly-page-in .65s var(--farmly-ease) both;
+}
+
+@keyframes farmly-page-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header polish */
+.topbar {
+  position: relative;
+  z-index: 20;
+  padding-top: 1.1rem;
+}
+
+.brand-wrap {
+  transition: transform .25s var(--farmly-ease);
+}
+
+.brand-wrap:hover {
+  transform: translateY(-1px);
+}
+
+.brand-mark {
+  letter-spacing: -.045em;
+  text-shadow: 0 5px 24px rgba(23, 107, 69, .08);
+}
+
+.topnav a {
+  position: relative;
+  padding: .45rem .15rem;
+  transition: color .2s ease, transform .2s ease;
+}
+
+.topnav a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 100%;
+  bottom: .08rem;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--farmly-gold);
+  transition: right .28s var(--farmly-ease);
+}
+
+.topnav a:hover {
+  color: var(--farmly-green);
+  transform: translateY(-1px);
+}
+
+.topnav a:hover::after {
+  right: 0;
+}
+
+.segment-control {
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(31, 41, 51, .06);
+}
+
+.segment-control button,
+.ghost-btn,
+.secondary-btn,
+.primary-btn,
+.text-button,
+.save-lot {
+  transition: transform .22s var(--farmly-ease), box-shadow .22s var(--farmly-ease), background .22s ease, border-color .22s ease;
+}
+
+.primary-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.primary-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-110%);
+  background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,.42) 50%, transparent 80%);
+  transition: transform .6s var(--farmly-ease);
+}
+
+.primary-btn:hover::after {
+  transform: translateX(110%);
+}
+
+.primary-btn:hover,
+.ghost-btn:hover,
+.secondary-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 26px rgba(20, 53, 40, .12);
+}
+
+.primary-btn:active,
+.ghost-btn:active,
+.secondary-btn:active,
+.text-button:active {
+  transform: translateY(0) scale(.98);
+}
+
+/* Hero */
+.dashboard-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 230px;
+  border: 1px solid rgba(255,255,255,.1);
+  background:
+    radial-gradient(circle at 85% 20%, rgba(231,169,40,.2), transparent 28%),
+    radial-gradient(circle at 5% 100%, rgba(76,175,80,.2), transparent 34%),
+    linear-gradient(135deg, #104b31, #176b45 58%, #245d45);
+}
+
+.dashboard-hero::before,
+.dashboard-hero::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.dashboard-hero::before {
+  width: 260px;
+  height: 260px;
+  right: -110px;
+  top: -140px;
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 0 0 36px rgba(255,255,255,.025), 0 0 0 72px rgba(255,255,255,.018);
+  animation: farmly-orbit 14s linear infinite;
+}
+
+.dashboard-hero::after {
+  width: 90px;
+  height: 90px;
+  right: 18%;
+  bottom: -55px;
+  background: rgba(231,169,40,.14);
+  filter: blur(2px);
+}
+
+.dashboard-hero h1 {
+  text-wrap: balance;
+}
+
+@keyframes farmly-orbit {
+  to { transform: rotate(360deg); }
+}
+
+/* Cards: cleaner hierarchy + lift */
+.panel,
+.stat-card,
+.role-card,
+.lot-card,
+.offer-card,
+.buyer-profile-card,
+.match-card,
+.bulk-card,
+.price-row,
+.ai-card,
+.assistant-response,
+.empty-state {
+  transition: transform .28s var(--farmly-ease), box-shadow .28s var(--farmly-ease), border-color .22s ease, background .22s ease;
+}
+
+.panel {
+  backdrop-filter: blur(10px);
+  box-shadow: 0 14px 34px rgba(20,53,40,.07);
+}
+
+.panel:hover {
+  box-shadow: 0 20px 42px rgba(20,53,40,.1);
+}
+
+.stat-card:hover,
+.lot-card:hover,
+.offer-card:hover,
+.buyer-profile-card:hover,
+.match-card:hover,
+.bulk-card:hover,
+.price-row:hover {
+  transform: translateY(-4px);
+  border-color: rgba(23,107,69,.25);
+  box-shadow: 0 16px 34px rgba(20,53,40,.1);
+}
+
+.role-card.is-active {
+  box-shadow: 0 18px 38px rgba(23,107,69,.13);
+}
+
+.role-card.is-active .role-icon {
+  animation: farmly-icon-pop .45s var(--farmly-ease) both;
+}
+
+@keyframes farmly-icon-pop {
+  0% { transform: scale(.88) rotate(-4deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+/* Make important numbers feel alive without distracting */
+.hero-summary strong,
+.stat-card strong,
+.offer-amount,
+.price-row strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-card strong,
+.offer-amount {
+  transition: transform .25s var(--farmly-ease), color .2s ease;
+}
+
+.stat-card:hover strong,
+.offer-card:hover .offer-amount {
+  transform: translateX(2px);
+  color: var(--farmly-green);
+}
+
+/* Forms */
+.filter-grid input,
+.filter-grid select,
+.offer-form input,
+.offer-form select,
+.offer-form textarea,
+.lot-form input,
+.lot-form select,
+.assistant-input-row input {
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease, transform .2s ease;
+}
+
+.filter-grid input:hover,
+.filter-grid select:hover,
+.offer-form input:hover,
+.offer-form select:hover,
+.offer-form textarea:hover,
+.lot-form input:hover,
+.lot-form select:hover,
+.assistant-input-row input:hover {
+  border-color: rgba(23,107,69,.28);
+  background: rgba(255,255,255,.72);
+}
+
+.filter-grid input:focus,
+.filter-grid select:focus,
+.offer-form input:focus,
+.offer-form select:focus,
+.offer-form textarea:focus,
+.lot-form input:focus,
+.lot-form select:focus,
+.assistant-input-row input:focus {
+  border-color: var(--farmly-gold);
+  box-shadow: 0 0 0 4px rgba(231,169,40,.11), 0 8px 20px rgba(20,53,40,.06);
+  background: #fff;
+  transform: translateY(-1px);
+  outline: none;
+}
+
+/* AI / recommendation areas */
+.ai-card,
+.highlight-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.ai-card::after,
+.highlight-card::after {
+  content: '';
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  right: -65px;
+  bottom: -70px;
+  border-radius: 50%;
+  background: rgba(231,169,40,.11);
+  animation: farmly-breathe 5s ease-in-out infinite;
+}
+
+@keyframes farmly-breathe {
+  0%, 100% { transform: scale(.92); opacity: .55; }
+  50% { transform: scale(1.08); opacity: .9; }
+}
+
+.recommendation-badge,
+.status-dot,
+.status-pill,
+.summary-chip {
+  transition: transform .2s var(--farmly-ease);
+}
+
+.recommendation-badge:hover,
+.status-dot:hover,
+.status-pill:hover,
+.summary-chip:hover {
+  transform: translateY(-1px);
+}
+
+/* Responsive polish */
+@media (min-width: 700px) {
+  .topbar {
+    width: min(1220px, calc(100% - 2.5rem));
+  }
+
+  .dashboard-shell,
+  .onboarding-page {
+    width: min(1220px, calc(100% - 2.5rem));
+  }
+
+  .dashboard-page {
+    gap: 1.4rem;
+  }
+}
+
+@media (max-width: 899px) {
+  .dashboard-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hero-summary {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    gap: .55rem;
+  }
+
+  .brand-tag {
+    display: none;
+  }
+
+  .topbar-actions {
+    gap: .4rem;
+  }
+
+  .ghost-btn,
+  .secondary-btn,
+  .primary-btn {
+    min-height: 44px;
+    padding-inline: .95rem;
+  }
+
+  .dashboard-shell {
+    width: min(100% - .9rem, 1220px);
+  }
+
+  .dashboard-page {
+    padding-top: .9rem;
+  }
+
+  .dashboard-hero {
+    border-radius: 22px;
+    padding: 1.2rem;
+    min-height: 0;
+  }
+
+  .dashboard-hero h1 {
+    font-size: clamp(2rem, 11vw, 3rem);
+  }
+
+  .hero-copy {
+    font-size: .95rem;
+  }
+
+  .panel {
+    padding: 1rem;
+    border-radius: 20px;
+  }
+
+  .stats-grid {
+    gap: .7rem;
+  }
+
+  .stat-card {
+    padding: .9rem;
+    border-radius: 17px;
+  }
+
+  .price-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .price-trend {
+    grid-column: 2;
+  }
+
+  .offer-actions {
+    flex-wrap: wrap;
+  }
+
+  .offer-actions .primary-btn,
+  .offer-actions .secondary-btn {
+    min-width: 120px;
+  }
+}
+
+/* Respect reduced-motion preferences. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
