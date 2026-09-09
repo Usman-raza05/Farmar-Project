@@ -1,0 +1,32 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Outfit', ui-sans-serif, system-ui, sans-serif;
+  --color-farm-ink: #0c1f18;
+  --color-farm-deep: #123528;
+  --color-farm-mid: #1f5c42;
+  --color-farm-leaf: #3d9a6a;
+  --color-farm-gold: #d4a017;
+  --color-farm-sand: #f3efe4;
+  --color-farm-mist: #e8efe9;
+}
+
+@layer base {
+  ::selection {
+    background: rgba(212, 160, 23, 0.28);
+    color: #0c1f18;
+  }
+
+  html {
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3,
+  .brand-mark,
+  .landing-brand span {
+    font-family: var(--font-display);
+  }
+}

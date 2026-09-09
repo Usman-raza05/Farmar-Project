@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import * as THREE from 'three'
+import PriceCompareChart from './components/charts/PriceCompareChart'
+import InteractiveMarketScene from './components/landing/InteractiveMarketScene'
+import LandingFooter from './components/landing/LandingFooter'
+import LandingHeroPanel from './components/landing/LandingHeroPanel'
+import LandingPriceGraph from './components/landing/LandingPriceGraph'
+import { calcEnr } from './lib/enr'
 import { createLot, createOffer, createProfile, getLots, getMarketPrices, getOffers, isSupabaseConfigured, signIn, signUp } from './lib/marketplaceApi'
 
 const languageOptions = [
@@ -10,14 +15,145 @@ const languageOptions = [
 
 const landingCopy = {
   en: {
-    nav: ['How it works', 'For farmers', 'For buyers', 'AI coach'], login: 'Log in', cta: 'Start selling smarter', eyebrow: "India's market-linkage network", title: 'Your harvest deserves a better deal.', intro: 'Haasil connects farmers and serious buyers with clear prices, verified lots, and decisions that protect your margin.', primary: 'Explore the marketplace', secondary: 'See how it works', trusted: "Built for the people who grow and move India's food.", stats: [['₹2.68k', 'best soybean offer'], ['94%', 'buyer match accuracy'], ['18 min', 'average listing time'], ['3.2k+', 'active network members']], featuresEyebrow: 'One source of truth', featuresTitle: 'From first price check to final settlement.', features: [['01', 'Know your real price', 'Compare mandi rates, transport, storage, and payment terms before you commit.'], ['02', 'Meet the right buyer', 'Verified buyers discover your lot by crop, grade, readiness, and location.'], ['03', 'Keep every promise visible', 'Offers, pickups, payments, and grievances stay in one transparent trail.']], howEyebrow: 'A clearer harvest journey', howTitle: 'Three moves from crop to cash.', how: [['01', 'List your lot', 'Add crop, quantity, quality, and the date you are ready to sell.'], ['02', 'Compare the whole deal', 'Haasil surfaces buyer offers and the net amount that reaches you.'], ['03', 'Trade with confidence', 'Choose a buyer, schedule pickup, and track settlement without guesswork.']], previewEyebrow: 'Inside Haasil', previewTitle: 'A command centre for every harvest.', aiEyebrow: 'Meet your AI coach', aiTitle: 'Ask a simple question. Make a sharper decision.', aiBody: '“Should I sell my soybean today?” Haasil reads your crop, market movement, storage window, and buyer demand to give you a plain-language next step.', aiCta: 'Ask the market', testimonialsEyebrow: 'Proof from the network', testimonialsTitle: 'More visibility. Better conversations.', testimonials: [['“For the first time, I could compare the buyer’s price with the cost of transport before saying yes.”', 'Meena P.', 'FPO member, Maharashtra'], ['“We find quality lots faster because every listing arrives with the context our procurement team needs.”', 'Amit Kulkarni', 'Procurement lead, AgroTrade']], finalTitle: 'Turn today’s harvest into tomorrow’s leverage.', finalBody: 'Join a marketplace designed around the value of your work, not just the nearest price board.', footer: 'Transparent trade for a stronger farm economy.',
+    nav: ['How it works', 'For farmers', 'For buyers', 'AI coach'], login: 'Log in', cta: 'Start selling smarter', eyebrow: "India's market-linkage network", title: 'Your harvest deserves a better deal.', intro: 'Farmly connects farmers and serious buyers with clear prices, verified lots, and decisions that protect your margin.', primary: 'Explore the marketplace', secondary: 'See how it works', trusted: "Built for the people who grow and move India's food.", stats: [['₹2.68k', 'best soybean offer'], ['94%', 'buyer match accuracy'], ['18 min', 'average listing time'], ['3.2k+', 'active network members']], featuresEyebrow: 'One source of truth', featuresTitle: 'From first price check to final settlement.', features: [['01', 'Know your real price', 'Compare mandi rates, transport, storage, and payment terms before you commit.'], ['02', 'Meet the right buyer', 'Verified buyers discover your lot by crop, grade, readiness, and location.'], ['03', 'Keep every promise visible', 'Offers, pickups, payments, and grievances stay in one transparent trail.']], howEyebrow: 'A clearer harvest journey', howTitle: 'Three moves from crop to cash.', how: [['01', 'List your lot', 'Add crop, quantity, quality, and the date you are ready to sell.'], ['02', 'Compare the whole deal', 'Farmly surfaces buyer offers and the net amount that reaches you.'], ['03', 'Trade with confidence', 'Choose a buyer, schedule pickup, and track settlement without guesswork.']], previewEyebrow: 'Inside Farmly', previewTitle: 'A command centre for every harvest.', aiEyebrow: 'Meet your AI coach', aiTitle: 'Ask a simple question. Make a sharper decision.', aiBody: '“Should I sell my soybean today?” Farmly reads your crop, market movement, storage window, and buyer demand to give you a plain-language next step.', aiCta: 'Ask the market', testimonialsEyebrow: 'Proof from the network', testimonialsTitle: 'More visibility. Better conversations.', testimonials: [['“For the first time, I could compare the buyer’s price with the cost of transport before saying yes.”', 'Meena P.', 'FPO member, Maharashtra'], ['“We find quality lots faster because every listing arrives with the context our procurement team needs.”', 'Amit Kulkarni', 'Procurement lead, AgroTrade']], finalTitle: 'Turn today’s harvest into tomorrow’s leverage.', finalBody: 'Join a marketplace designed around the value of your work, not just the nearest price board.', footer: 'Transparent trade for a stronger farm economy.',
   },
   hi: {
-    nav: ['कैसे काम करता है', 'किसानों के लिए', 'खरीदारों के लिए', 'AI कोच'], login: 'लॉग इन', cta: 'बेहतर बेचें', eyebrow: 'भारत का बाजार नेटवर्क', title: 'आपकी फसल को बेहतर सौदा मिलना चाहिए।', intro: 'Haasil किसानों और भरोसेमंद खरीदारों को साफ कीमतों, सत्यापित लॉट और बेहतर फैसलों से जोड़ता है।', primary: 'मार्केटप्लेस देखें', secondary: 'जानें कैसे काम करता है', trusted: 'भारत का अन्न उगाने और पहुंचाने वालों के लिए।', stats: [['₹2.68k', 'सबसे अच्छा सोयाबीन भाव'], ['94%', 'खरीदार मिलान'], ['18 मिनट', 'लिस्टिंग समय'], ['3.2k+', 'सक्रिय सदस्य']], featuresEyebrow: 'एक भरोसेमंद तस्वीर', featuresTitle: 'पहली कीमत से अंतिम भुगतान तक।', features: [['01', 'अपनी असली कीमत जानें', 'मंडी भाव, परिवहन, भंडारण और भुगतान शर्तों की तुलना करें।'], ['02', 'सही खरीदार पाएं', 'खरीदार फसल, ग्रेड, तैयारी और स्थान के आधार पर आपका लॉट खोजते हैं।'], ['03', 'हर वादा साफ रखें', 'ऑफर, पिकअप, भुगतान और शिकायत एक ही जगह दिखते हैं।']], howEyebrow: 'आसान फसल सफर', howTitle: 'फसल से भुगतान तक तीन कदम।', how: [['01', 'लॉट बनाएं', 'फसल, मात्रा, गुणवत्ता और बिक्री की तारीख जोड़ें।'], ['02', 'पूरा सौदा तुलना करें', 'Haasil खरीदार ऑफर और आपके हाथ में आने वाली रकम दिखाता है।'], ['03', 'भरोसे से व्यापार करें', 'खरीदार चुनें, पिकअप तय करें और भुगतान ट्रैक करें।']], previewEyebrow: 'Haasil के अंदर', previewTitle: 'हर फसल के लिए कमांड सेंटर।', aiEyebrow: 'आपका AI कोच', aiTitle: 'सरल सवाल पूछें। बेहतर फैसला लें।', aiBody: '“क्या मुझे आज सोयाबीन बेचना चाहिए?” Haasil आपकी फसल, बाजार, भंडारण और मांग देखकर आसान सलाह देता है।', aiCta: 'बाजार से पूछें', testimonialsEyebrow: 'नेटवर्क की आवाज', testimonialsTitle: 'ज्यादा जानकारी। बेहतर बातचीत।', testimonials: [['“पहली बार मैंने कीमत के साथ परिवहन लागत भी देखकर फैसला लिया।”', 'मीना पी.', 'FPO सदस्य, महाराष्ट्र'], ['“हर लिस्टिंग में जरूरी जानकारी होती है, इसलिए सोर्सिंग तेज होती है।”', 'अमित कुलकर्णी', 'प्रोक्योरमेंट लीड']], finalTitle: 'आज की फसल को कल की ताकत बनाएं।', finalBody: 'आपके काम की पूरी कीमत को ध्यान में रखकर बना मार्केटप्लेस।', footer: 'मजबूत खेती अर्थव्यवस्था के लिए पारदर्शी व्यापार।',
+    nav: ['कैसे काम करता है', 'किसानों के लिए', 'खरीदारों के लिए', 'AI कोच'], login: 'लॉग इन', cta: 'बेहतर बेचें', eyebrow: 'भारत का बाजार नेटवर्क', title: 'आपकी फसल को बेहतर सौदा मिलना चाहिए।', intro: 'Farmly किसानों और भरोसेमंद खरीदारों को साफ कीमतों, सत्यापित लॉट और बेहतर फैसलों से जोड़ता है।', primary: 'मार्केटप्लेस देखें', secondary: 'जानें कैसे काम करता है', trusted: 'भारत का अन्न उगाने और पहुंचाने वालों के लिए।', stats: [['₹2.68k', 'सबसे अच्छा सोयाबीन भाव'], ['94%', 'खरीदार मिलान'], ['18 मिनट', 'लिस्टिंग समय'], ['3.2k+', 'सक्रिय सदस्य']], featuresEyebrow: 'एक भरोसेमंद तस्वीर', featuresTitle: 'पहली कीमत से अंतिम भुगतान तक।', features: [['01', 'अपनी असली कीमत जानें', 'मंडी भाव, परिवहन, भंडारण और भुगतान शर्तों की तुलना करें।'], ['02', 'सही खरीदार पाएं', 'खरीदार फसल, ग्रेड, तैयारी और स्थान के आधार पर आपका लॉट खोजते हैं।'], ['03', 'हर वादा साफ रखें', 'ऑफर, पिकअप, भुगतान और शिकायत एक ही जगह दिखते हैं।']], howEyebrow: 'आसान फसल सफर', howTitle: 'फसल से भुगतान तक तीन कदम।', how: [['01', 'लॉट बनाएं', 'फसल, मात्रा, गुणवत्ता और बिक्री की तारीख जोड़ें।'], ['02', 'पूरा सौदा तुलना करें', 'Farmly खरीदार ऑफर और आपके हाथ में आने वाली रकम दिखाता है।'], ['03', 'भरोसे से व्यापार करें', 'खरीदार चुनें, पिकअप तय करें और भुगतान ट्रैक करें।']], previewEyebrow: 'Farmly के अंदर', previewTitle: 'हर फसल के लिए कमांड सेंटर।', aiEyebrow: 'आपका AI कोच', aiTitle: 'सरल सवाल पूछें। बेहतर फैसला लें।', aiBody: '“क्या मुझे आज सोयाबीन बेचना चाहिए?” Farmly आपकी फसल, बाजार, भंडारण और मांग देखकर आसान सलाह देता है।', aiCta: 'बाजार से पूछें', testimonialsEyebrow: 'नेटवर्क की आवाज', testimonialsTitle: 'ज्यादा जानकारी। बेहतर बातचीत।', testimonials: [['“पहली बार मैंने कीमत के साथ परिवहन लागत भी देखकर फैसला लिया।”', 'मीना पी.', 'FPO सदस्य, महाराष्ट्र'], ['“हर लिस्टिंग में जरूरी जानकारी होती है, इसलिए सोर्सिंग तेज होती है।”', 'अमित कुलकर्णी', 'प्रोक्योरमेंट लीड']], finalTitle: 'आज की फसल को कल की ताकत बनाएं।', finalBody: 'आपके काम की पूरी कीमत को ध्यान में रखकर बना मार्केटप्लेस।', footer: 'मजबूत खेती अर्थव्यवस्था के लिए पारदर्शी व्यापार।',
   },
   mr: {
-    nav: ['कसे काम करते', 'शेतकऱ्यांसाठी', 'खरेदीदारांसाठी', 'AI कोच'], login: 'लॉग इन', cta: 'हुशारीने विक्री करा', eyebrow: 'भारताचे बाजार नेटवर्क', title: 'तुमच्या मालाला योग्य भाव मिळायला हवा.', intro: 'Haasil शेतकरी आणि विश्वासू खरेदीदारांना स्पष्ट दर, पडताळलेले लॉट आणि चांगल्या निर्णयांशी जोडते.', primary: 'मार्केटप्लेस पहा', secondary: 'कसे काम करते ते पहा', trusted: 'भारताचे अन्न पिकवणाऱ्या आणि पोहोचवणाऱ्या लोकांसाठी.', stats: [['₹2.68k', 'सोयाबीनचा सर्वोत्तम दर'], ['94%', 'खरेदीदार जुळणी'], ['18 मिनिटे', 'लिस्टिंग वेळ'], ['3.2k+', 'सक्रिय सदस्य']], featuresEyebrow: 'एक स्पष्ट चित्र', featuresTitle: 'पहिल्या दरापासून अंतिम हिशेबापर्यंत.', features: [['01', 'तुमचा खरा दर जाणून घ्या', 'मंडी दर, वाहतूक, साठवणूक आणि पेमेंट अटींची तुलना करा.'], ['02', 'योग्य खरेदीदार मिळवा', 'खरेदीदार पीक, दर्जा, तयारी आणि स्थानानुसार तुमचा लॉट शोधतात.'], ['03', 'प्रत्येक व्यवहार स्पष्ट ठेवा', 'ऑफर, पिकअप, पेमेंट आणि तक्रारी एका ठिकाणी ठेवा.']], howEyebrow: 'सोपे पीक प्रवास', howTitle: 'पिकापासून पैशापर्यंत तीन पावले.', how: [['01', 'लॉट नोंदवा', 'पीक, प्रमाण, दर्जा आणि विक्रीची तारीख भरा.'], ['02', 'संपूर्ण व्यवहाराची तुलना करा', 'Haasil खरेदीदारांच्या ऑफर आणि तुमच्या हातात येणारी रक्कम दाखवते.'], ['03', 'विश्वासाने व्यवहार करा', 'खरेदीदार निवडा, पिकअप ठरवा आणि पेमेंटचा मागोवा घ्या.']], previewEyebrow: 'Haasil मध्ये', previewTitle: 'प्रत्येक पिकासाठी कमांड सेंटर.', aiEyebrow: 'तुमचा AI कोच', aiTitle: 'सोपे प्रश्न विचारा. चांगला निर्णय घ्या.', aiBody: '“मी आज सोयाबीन विकू का?” Haasil पीक, बाजार, साठवणूक आणि मागणी पाहून सोपा सल्ला देते.', aiCta: 'बाजाराला विचारा', testimonialsEyebrow: 'नेटवर्कचा विश्वास', testimonialsTitle: 'अधिक माहिती. चांगले व्यवहार.', testimonials: [['“दरासोबत वाहतूक खर्च पाहून निर्णय घेता आला.”', 'मीना पी.', 'FPO सदस्य, महाराष्ट्र'], ['“लॉटची माहिती पूर्ण असल्याने सोर्सिंग जलद होते.”', 'अमित कुलकर्णी', 'प्रोक्योरमेंट लीड']], finalTitle: 'आजच्या पिकाला उद्याची ताकद द्या.', finalBody: 'तुमच्या कष्टाची पूर्ण किंमत लक्षात घेऊन बनवलेले मार्केटप्लेस.', footer: 'मजबूत शेती अर्थव्यवस्थेसाठी पारदर्शी व्यापार.',
+    nav: ['कसे काम करते', 'शेतकऱ्यांसाठी', 'खरेदीदारांसाठी', 'AI कोच'], login: 'लॉग इन', cta: 'हुशारीने विक्री करा', eyebrow: 'भारताचे बाजार नेटवर्क', title: 'तुमच्या मालाला योग्य भाव मिळायला हवा.', intro: 'Farmly शेतकरी आणि विश्वासू खरेदीदारांना स्पष्ट दर, पडताळलेले लॉट आणि चांगल्या निर्णयांशी जोडते.', primary: 'मार्केटप्लेस पहा', secondary: 'कसे काम करते ते पहा', trusted: 'भारताचे अन्न पिकवणाऱ्या आणि पोहोचवणाऱ्या लोकांसाठी.', stats: [['₹2.68k', 'सोयाबीनचा सर्वोत्तम दर'], ['94%', 'खरेदीदार जुळणी'], ['18 मिनिटे', 'लिस्टिंग वेळ'], ['3.2k+', 'सक्रिय सदस्य']], featuresEyebrow: 'एक स्पष्ट चित्र', featuresTitle: 'पहिल्या दरापासून अंतिम हिशेबापर्यंत.', features: [['01', 'तुमचा खरा दर जाणून घ्या', 'मंडी दर, वाहतूक, साठवणूक आणि पेमेंट अटींची तुलना करा.'], ['02', 'योग्य खरेदीदार मिळवा', 'खरेदीदार पीक, दर्जा, तयारी आणि स्थानानुसार तुमचा लॉट शोधतात.'], ['03', 'प्रत्येक व्यवहार स्पष्ट ठेवा', 'ऑफर, पिकअप, पेमेंट आणि तक्रारी एका ठिकाणी ठेवा.']], howEyebrow: 'सोपे पीक प्रवास', howTitle: 'पिकापासून पैशापर्यंत तीन पावले.', how: [['01', 'लॉट नोंदवा', 'पीक, प्रमाण, दर्जा आणि विक्रीची तारीख भरा.'], ['02', 'संपूर्ण व्यवहाराची तुलना करा', 'Farmly खरेदीदारांच्या ऑफर आणि तुमच्या हातात येणारी रक्कम दाखवते.'], ['03', 'विश्वासाने व्यवहार करा', 'खरेदीदार निवडा, पिकअप ठरवा आणि पेमेंटचा मागोवा घ्या.']], previewEyebrow: 'Farmly मध्ये', previewTitle: 'प्रत्येक पिकासाठी कमांड सेंटर.', aiEyebrow: 'तुमचा AI कोच', aiTitle: 'सोपे प्रश्न विचारा. चांगला निर्णय घ्या.', aiBody: '“मी आज सोयाबीन विकू का?” Farmly पीक, बाजार, साठवणूक आणि मागणी पाहून सोपा सल्ला देते.', aiCta: 'बाजाराला विचारा', testimonialsEyebrow: 'नेटवर्कचा विश्वास', testimonialsTitle: 'अधिक माहिती. चांगले व्यवहार.', testimonials: [['“दरासोबत वाहतूक खर्च पाहून निर्णय घेता आला.”', 'मीना पी.', 'FPO सदस्य, महाराष्ट्र'], ['“लॉटची माहिती पूर्ण असल्याने सोर्सिंग जलद होते.”', 'अमित कुलकर्णी', 'प्रोक्योरमेंट लीड']], finalTitle: 'आजच्या पिकाला उद्याची ताकद द्या.', finalBody: 'तुमच्या कष्टाची पूर्ण किंमत लक्षात घेऊन बनवलेले मार्केटप्लेस.', footer: 'मजबूत शेती अर्थव्यवस्थेसाठी पारदर्शी व्यापार.',
   },
+}
+
+function useCountUp(target, duration = 1600, start = true) {
+  const [value, setValue] = useState(0)
+  const frameRef = useRef(null)
+
+  useEffect(() => {
+    if (!start) return
+
+    let startTime = null
+
+    const animate = (timestamp) => {
+      if (!startTime) startTime = timestamp
+
+      const elapsed = timestamp - startTime
+      const progress = Math.min(elapsed / duration, 1)
+
+      // Smooth ease-out
+      const eased =
+        1 - Math.pow(1 - progress, 3)
+
+      const nextValue = Math.floor(target * eased)
+
+      setValue(nextValue)
+
+      if (progress < 1) {
+        frameRef.current = requestAnimationFrame(animate)
+      } else {
+        setValue(target)
+      }
+    }
+
+    frameRef.current = requestAnimationFrame(animate)
+
+    return () => {
+      if (frameRef.current) {
+        cancelAnimationFrame(frameRef.current)
+      }
+    }
+  }, [target, duration, start])
+
+  return value
+}
+
+function AnimatedStat({
+  value,
+  label,
+  type = 'number',
+  delay = 0,
+}) {
+  const [started, setStarted] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const element = ref.current
+
+    if (!element) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => {
+            setStarted(true)
+          }, delay)
+
+          observer.disconnect()
+        }
+      },
+      {
+        threshold: 0.35,
+      },
+    )
+
+    observer.observe(element)
+
+    return () => observer.disconnect()
+  }, [delay])
+
+  const numericValue =
+    type === 'percent'
+      ? 94
+      : type === 'minutes'
+        ? 18
+        : type === 'members'
+          ? 3200
+          : 2680
+
+  const count = useCountUp(
+    numericValue,
+    1700,
+    started,
+  )
+
+  const formattedValue = (() => {
+    if (type === 'percent') {
+      return `${count}%`
+    }
+
+    if (type === 'minutes') {
+      return `${count} min`
+    }
+
+    if (type === 'members') {
+      if (count < 1000) {
+        return `${count}`
+      }
+
+      return `${(count / 1000).toFixed(1)}k+`
+    }
+
+    if (count < 1000) {
+      return `₹${count}`
+    }
+
+    return `₹${(count / 1000).toFixed(2)}k`
+  })()
+
+  return (
+    <div
+      ref={ref}
+      className="stat-card"
+    >
+      <div className="stat-number">
+        {started ? formattedValue : '0'}
+      </div>
+
+      <div className="stat-label">
+        {label}
+      </div>
+    </div>
+  )
 }
 
 const effectCopy = {
@@ -28,13 +164,13 @@ const effectCopy = {
 
 const dashboardCopy = {
   en: {
-    marketLinkages: 'Market linkages', buyerNetwork: 'Buyer network', overview: 'Overview', prices: 'Prices', myLots: 'My lots', offers: 'Offers', discover: 'Discover', bulk: 'Bulk', payments: 'Payments', switchRole: 'Switch role', farmerEyebrow: 'Farmer / FPO dashboard', farmerTitle: 'Clearer decisions, stronger bargaining power.', farmerBody: 'See nearby mandi prices, digital offers, and the likely best sale window for your crop in one place.', currentSignal: 'Current market signal', estimated: 'Estimated realised', mandiRate: 'Current mandi rate', bestOffer: 'Best offer', processorOffer: 'Processor offer', expectedGain: 'Expected gain', heldDays: 'If held 4 days', liveLots: 'Live lots', acrossFarm: 'Across your farm/FPO', priceDiscovery: 'Price discovery', nearbySignal: 'Nearby market signal', live: 'Live', marketRate: 'Market rate', buyerOffer: 'Buyer offer', digitalTrade: 'Digital trade', aiRecommendation: 'AI recommendation', saleWindow: 'Sale window', listing: 'Listing', createLot: 'Create a lot', crop: 'Crop', quantity: 'Quantity (quintals)', qualityGrade: 'Quality grade', location: 'Location', readyDate: 'Ready date', addLot: 'Add lot to market', yourLots: 'Your lots', activeListings: 'Active listings', liveOffers: 'live offers', incomingOffers: 'Incoming digital offers', review: 'Review', accept: 'Accept', accepted: 'Accepted', logistics: 'Logistics', storageTransport: 'Storage & transport', paymentsTitle: 'Track settlement', support: 'Support', raiseGrievance: 'Raise grievance', buyerEyebrow: 'Buyer dashboard', buyerTitle: 'Source compliant volume faster.', buyerBody: 'Rank lots by match quality, production readiness, and trust so your procurement team can act quickly.', demandMatch: 'Demand match', bestFit: 'Best fit for your likely order profile', matchingLots: 'Matching lots', sortedDemand: 'Sorted by demand fit', avgLot: 'Avg. lot value', nearbyLots: 'Across nearby lots', fastestPickup: 'Fastest pickup', readyDispatch: 'Ready for dispatch', trustScore: 'Trust score', pastBuyer: 'Past buyer health', filterLots: 'Filter lots by fit', resetFilters: 'Reset filters', matches: 'matches', bestMatch: 'Best match', highestPrice: 'Highest price', largestVolume: 'Largest volume', nearest: 'Nearest first', any: 'Any', readyBy: 'Ready by', recommendedSupply: 'Recommended supply', purchaseProfile: 'Purchase profile', makeOffer: 'Make digital offer', proposedPrice: 'Proposed price / qtl', terms: 'Terms', notes: 'Notes', sendOffer: 'Send offer', offerSent: 'Offer sent', bulkVolume: 'Bulk volume', combineLots: 'Combine nearby lots', commitment: 'Commitment tracking', noLots: 'No lots match these filters.', widenFilters: 'Try widening your radius or lowering the minimum quantity.', showAll: 'Show all lots', aiAssistant: 'AI assistant', askMarket: 'Ask the market', plainAnswer: 'Plain-language answer', ask: 'Ask', login: 'Log in', register: 'Register', welcome: 'Welcome back', joinWelcome: 'Join Haasil', workspace: 'Enter your Haasil workspace.', createWorkspace: 'Create your Haasil workspace.', demoAccount: 'Use a demo account to explore the platform. No real credentials are required.', registerBody: 'Create a demo account and start with the workspace that fits your role.', fullName: 'Full name', createAccount: 'Create account', mobileEmail: 'Mobile number or email', password: 'Password', opening: 'Opening workspace...', demoMode: 'Demo mode · your data stays in this browser session', farmerRole: 'Farmer / FPO', buyerRole: 'Buyer',
+    marketLinkages: 'Market linkages', buyerNetwork: 'Buyer network', overview: 'Overview', prices: 'Prices', myLots: 'My lots', offers: 'Offers', discover: 'Discover', bulk: 'Bulk', payments: 'Payments', switchRole: 'Switch role', farmerEyebrow: 'Farmer / FPO dashboard', farmerTitle: 'Clearer decisions, stronger bargaining power.', farmerBody: 'See nearby mandi prices, digital offers, and the likely best sale window for your crop in one place.', currentSignal: 'Current market signal', estimated: 'Estimated realised', mandiRate: 'Current mandi rate', bestOffer: 'Best offer', processorOffer: 'Processor offer', expectedGain: 'Expected gain', heldDays: 'If held 4 days', liveLots: 'Live lots', acrossFarm: 'Across your farm/FPO', priceDiscovery: 'Price discovery', nearbySignal: 'Nearby market signal', live: 'Live', marketRate: 'Market rate', buyerOffer: 'Buyer offer', digitalTrade: 'Digital trade', aiRecommendation: 'AI recommendation', saleWindow: 'Sale window', listing: 'Listing', createLot: 'Create a lot', crop: 'Crop', quantity: 'Quantity (quintals)', qualityGrade: 'Quality grade', location: 'Location', readyDate: 'Ready date', addLot: 'Add lot to market', yourLots: 'Your lots', activeListings: 'Active listings', liveOffers: 'live offers', incomingOffers: 'Incoming digital offers', review: 'Review', accept: 'Accept', accepted: 'Accepted', logistics: 'Logistics', storageTransport: 'Storage & transport', paymentsTitle: 'Track settlement', support: 'Support', raiseGrievance: 'Raise grievance', buyerEyebrow: 'Buyer dashboard', buyerTitle: 'Source compliant volume faster.', buyerBody: 'Rank lots by match quality, production readiness, and trust so your procurement team can act quickly.', demandMatch: 'Demand match', bestFit: 'Best fit for your likely order profile', matchingLots: 'Matching lots', sortedDemand: 'Sorted by demand fit', avgLot: 'Avg. lot value', nearbyLots: 'Across nearby lots', fastestPickup: 'Fastest pickup', readyDispatch: 'Ready for dispatch', trustScore: 'Trust score', pastBuyer: 'Past buyer health', filterLots: 'Filter lots by fit', resetFilters: 'Reset filters', matches: 'matches', bestMatch: 'Best match', highestPrice: 'Highest price', largestVolume: 'Largest volume', nearest: 'Nearest first', any: 'Any', readyBy: 'Ready by', recommendedSupply: 'Recommended supply', purchaseProfile: 'Purchase profile', makeOffer: 'Make digital offer', proposedPrice: 'Proposed price / qtl', terms: 'Terms', notes: 'Notes', sendOffer: 'Send offer', offerSent: 'Offer sent', bulkVolume: 'Bulk volume', combineLots: 'Combine nearby lots', commitment: 'Commitment tracking', noLots: 'No lots match these filters.', widenFilters: 'Try widening your radius or lowering the minimum quantity.', showAll: 'Show all lots', aiAssistant: 'AI assistant', askMarket: 'Ask the market', plainAnswer: 'Plain-language answer', ask: 'Ask', login: 'Log in', register: 'Register', welcome: 'Welcome back', joinWelcome: 'Join Farmly', workspace: 'Enter your Farmly workspace.', createWorkspace: 'Create your Farmly workspace.', demoAccount: 'Use a demo account to explore the platform. No real credentials are required.', registerBody: 'Create a demo account and start with the workspace that fits your role.', fullName: 'Full name', createAccount: 'Create account', mobileEmail: 'Mobile number or email', password: 'Password', opening: 'Opening workspace...', demoMode: 'Demo mode · your data stays in this browser session', farmerRole: 'Farmer / FPO', buyerRole: 'Buyer',
   },
   hi: {
-    marketLinkages: 'बाजार संपर्क', buyerNetwork: 'खरीदार नेटवर्क', overview: 'सारांश', prices: 'भाव', myLots: 'मेरे लॉट', offers: 'ऑफर', discover: 'खोजें', bulk: 'थोक', payments: 'भुगतान', switchRole: 'भूमिका बदलें', farmerEyebrow: 'किसान / FPO डैशबोर्ड', farmerTitle: 'बेहतर फैसले, मजबूत सौदेबाजी।', farmerBody: 'मंडी भाव, डिजिटल ऑफर और अपनी फसल के सही बिक्री समय को एक ही जगह देखें।', currentSignal: 'वर्तमान बाजार संकेत', estimated: 'अनुमानित प्राप्ति', mandiRate: 'वर्तमान मंडी भाव', bestOffer: 'सबसे अच्छा ऑफर', processorOffer: 'प्रोसेसर ऑफर', expectedGain: 'अनुमानित लाभ', heldDays: '4 दिन रोकने पर', liveLots: 'सक्रिय लॉट', acrossFarm: 'आपके खेत / FPO से', priceDiscovery: 'भाव जानकारी', nearbySignal: 'नजदीकी बाजार संकेत', live: 'लाइव', marketRate: 'बाजार भाव', buyerOffer: 'खरीदार ऑफर', digitalTrade: 'डिजिटल व्यापार', aiRecommendation: 'AI सुझाव', saleWindow: 'बिक्री का समय', listing: 'लिस्टिंग', createLot: 'लॉट बनाएं', crop: 'फसल', quantity: 'मात्रा (क्विंटल)', qualityGrade: 'गुणवत्ता ग्रेड', location: 'स्थान', readyDate: 'तैयार तारीख', addLot: 'लॉट बाजार में जोड़ें', yourLots: 'आपके लॉट', activeListings: 'सक्रिय लिस्टिंग', liveOffers: 'लाइव ऑफर', incomingOffers: 'आने वाले डिजिटल ऑफर', review: 'देखें', accept: 'स्वीकार करें', accepted: 'स्वीकार किया', logistics: 'लॉजिस्टिक्स', storageTransport: 'भंडारण और परिवहन', paymentsTitle: 'भुगतान ट्रैक करें', support: 'सहायता', raiseGrievance: 'शिकायत दर्ज करें', buyerEyebrow: 'खरीदार डैशबोर्ड', buyerTitle: 'मानक के अनुरूप मात्रा जल्दी पाएं।', buyerBody: 'मिलान, तैयार मात्रा और भरोसे के आधार पर लॉट चुनें ताकि खरीद टीम जल्दी निर्णय ले सके।', demandMatch: 'मांग मिलान', bestFit: 'आपके ऑर्डर के लिए सबसे अच्छा मिलान', matchingLots: 'मिलते लॉट', sortedDemand: 'मांग के अनुसार', avgLot: 'औसत लॉट भाव', nearbyLots: 'नजदीकी लॉट पर', fastestPickup: 'सबसे तेज पिकअप', readyDispatch: 'भेजने के लिए तैयार', trustScore: 'भरोसा स्कोर', pastBuyer: 'पिछला खरीदार रिकॉर्ड', filterLots: 'मिलान के अनुसार लॉट छांटें', resetFilters: 'फिल्टर रीसेट', matches: 'मिलान', bestMatch: 'सबसे अच्छा मिलान', highestPrice: 'सबसे ऊंचा भाव', largestVolume: 'सबसे बड़ी मात्रा', nearest: 'सबसे नजदीक', any: 'कोई भी', readyBy: 'तैयार तारीख', recommendedSupply: 'सुझाई गई आपूर्ति', purchaseProfile: 'खरीद प्रोफाइल', makeOffer: 'डिजिटल ऑफर दें', proposedPrice: 'प्रस्तावित भाव / क्विंटल', terms: 'शर्तें', notes: 'नोट्स', sendOffer: 'ऑफर भेजें', offerSent: 'ऑफर भेज दिया', bulkVolume: 'थोक मात्रा', combineLots: 'नजदीकी लॉट मिलाएं', commitment: 'भुगतान प्रतिबद्धता', noLots: 'इन फिल्टर से कोई लॉट नहीं मिला।', widenFilters: 'दायरा बढ़ाएं या न्यूनतम मात्रा कम करें।', showAll: 'सभी लॉट दिखाएं', aiAssistant: 'AI सहायक', askMarket: 'बाजार से पूछें', plainAnswer: 'सरल उत्तर', ask: 'पूछें', login: 'लॉग इन', welcome: 'वापसी पर स्वागत है', workspace: 'अपने Haasil कार्यक्षेत्र में जाएं।', demoAccount: 'डेमो खाते से प्लेटफॉर्म देखें। असली जानकारी की जरूरत नहीं है।', mobileEmail: 'मोबाइल नंबर या ईमेल', password: 'पासवर्ड', opening: 'वर्कस्पेस खुल रहा है...', demoMode: 'डेमो मोड · आपका डेटा इसी ब्राउजर में रहेगा', farmerRole: 'किसान / FPO', buyerRole: 'खरीदार',
+    marketLinkages: 'बाजार संपर्क', buyerNetwork: 'खरीदार नेटवर्क', overview: 'सारांश', prices: 'भाव', myLots: 'मेरे लॉट', offers: 'ऑफर', discover: 'खोजें', bulk: 'थोक', payments: 'भुगतान', switchRole: 'भूमिका बदलें', farmerEyebrow: 'किसान / FPO डैशबोर्ड', farmerTitle: 'बेहतर फैसले, मजबूत सौदेबाजी।', farmerBody: 'मंडी भाव, डिजिटल ऑफर और अपनी फसल के सही बिक्री समय को एक ही जगह देखें।', currentSignal: 'वर्तमान बाजार संकेत', estimated: 'अनुमानित प्राप्ति', mandiRate: 'वर्तमान मंडी भाव', bestOffer: 'सबसे अच्छा ऑफर', processorOffer: 'प्रोसेसर ऑफर', expectedGain: 'अनुमानित लाभ', heldDays: '4 दिन रोकने पर', liveLots: 'सक्रिय लॉट', acrossFarm: 'आपके खेत / FPO से', priceDiscovery: 'भाव जानकारी', nearbySignal: 'नजदीकी बाजार संकेत', live: 'लाइव', marketRate: 'बाजार भाव', buyerOffer: 'खरीदार ऑफर', digitalTrade: 'डिजिटल व्यापार', aiRecommendation: 'AI सुझाव', saleWindow: 'बिक्री का समय', listing: 'लिस्टिंग', createLot: 'लॉट बनाएं', crop: 'फसल', quantity: 'मात्रा (क्विंटल)', qualityGrade: 'गुणवत्ता ग्रेड', location: 'स्थान', readyDate: 'तैयार तारीख', addLot: 'लॉट बाजार में जोड़ें', yourLots: 'आपके लॉट', activeListings: 'सक्रिय लिस्टिंग', liveOffers: 'लाइव ऑफर', incomingOffers: 'आने वाले डिजिटल ऑफर', review: 'देखें', accept: 'स्वीकार करें', accepted: 'स्वीकार किया', logistics: 'लॉजिस्टिक्स', storageTransport: 'भंडारण और परिवहन', paymentsTitle: 'भुगतान ट्रैक करें', support: 'सहायता', raiseGrievance: 'शिकायत दर्ज करें', buyerEyebrow: 'खरीदार डैशबोर्ड', buyerTitle: 'मानक के अनुरूप मात्रा जल्दी पाएं।', buyerBody: 'मिलान, तैयार मात्रा और भरोसे के आधार पर लॉट चुनें ताकि खरीद टीम जल्दी निर्णय ले सके।', demandMatch: 'मांग मिलान', bestFit: 'आपके ऑर्डर के लिए सबसे अच्छा मिलान', matchingLots: 'मिलते लॉट', sortedDemand: 'मांग के अनुसार', avgLot: 'औसत लॉट भाव', nearbyLots: 'नजदीकी लॉट पर', fastestPickup: 'सबसे तेज पिकअप', readyDispatch: 'भेजने के लिए तैयार', trustScore: 'भरोसा स्कोर', pastBuyer: 'पिछला खरीदार रिकॉर्ड', filterLots: 'मिलान के अनुसार लॉट छांटें', resetFilters: 'फिल्टर रीसेट', matches: 'मिलान', bestMatch: 'सबसे अच्छा मिलान', highestPrice: 'सबसे ऊंचा भाव', largestVolume: 'सबसे बड़ी मात्रा', nearest: 'सबसे नजदीक', any: 'कोई भी', readyBy: 'तैयार तारीख', recommendedSupply: 'सुझाई गई आपूर्ति', purchaseProfile: 'खरीद प्रोफाइल', makeOffer: 'डिजिटल ऑफर दें', proposedPrice: 'प्रस्तावित भाव / क्विंटल', terms: 'शर्तें', notes: 'नोट्स', sendOffer: 'ऑफर भेजें', offerSent: 'ऑफर भेज दिया', bulkVolume: 'थोक मात्रा', combineLots: 'नजदीकी लॉट मिलाएं', commitment: 'भुगतान प्रतिबद्धता', noLots: 'इन फिल्टर से कोई लॉट नहीं मिला।', widenFilters: 'दायरा बढ़ाएं या न्यूनतम मात्रा कम करें।', showAll: 'सभी लॉट दिखाएं', aiAssistant: 'AI सहायक', askMarket: 'बाजार से पूछें', plainAnswer: 'सरल उत्तर', ask: 'पूछें', login: 'लॉग इन', welcome: 'वापसी पर स्वागत है', workspace: 'अपने Farmly कार्यक्षेत्र में जाएं।', demoAccount: 'डेमो खाते से प्लेटफॉर्म देखें। असली जानकारी की जरूरत नहीं है।', mobileEmail: 'मोबाइल नंबर या ईमेल', password: 'पासवर्ड', opening: 'वर्कस्पेस खुल रहा है...', demoMode: 'डेमो मोड · आपका डेटा इसी ब्राउजर में रहेगा', farmerRole: 'किसान / FPO', buyerRole: 'खरीदार',
   },
   mr: {
-    marketLinkages: 'बाजार जोडणी', buyerNetwork: 'खरेदीदार नेटवर्क', overview: 'आढावा', prices: 'दर', myLots: 'माझे लॉट', offers: 'ऑफर', discover: 'शोधा', bulk: 'मोठ्या प्रमाणात', payments: 'पेमेंट', switchRole: 'भूमिका बदला', farmerEyebrow: 'शेतकरी / FPO डॅशबोर्ड', farmerTitle: 'अधिक स्पष्ट निर्णय, मजबूत सौदेबाजी.', farmerBody: 'जवळचे मंडी दर, डिजिटल ऑफर आणि तुमच्या पिकासाठी योग्य विक्रीची वेळ एका ठिकाणी पहा.', currentSignal: 'सध्याचा बाजार संकेत', estimated: 'अंदाजे मिळकत', mandiRate: 'सध्याचा मंडी दर', bestOffer: 'सर्वोत्तम ऑफर', processorOffer: 'प्रोसेसर ऑफर', expectedGain: 'अंदाजे फायदा', heldDays: '4 दिवस थांबल्यास', liveLots: 'सक्रिय लॉट', acrossFarm: 'तुमच्या शेत / FPO मधून', priceDiscovery: 'दर शोध', nearbySignal: 'जवळचा बाजार संकेत', live: 'लाइव्ह', marketRate: 'बाजार दर', buyerOffer: 'खरेदीदार ऑफर', digitalTrade: 'डिजिटल व्यापार', aiRecommendation: 'AI सूचना', saleWindow: 'विक्रीची वेळ', listing: 'लिस्टिंग', createLot: 'लॉट तयार करा', crop: 'पीक', quantity: 'प्रमाण (क्विंटल)', qualityGrade: 'दर्जा', location: 'ठिकाण', readyDate: 'तयार तारीख', addLot: 'लॉट बाजारात जोडा', yourLots: 'तुमचे लॉट', activeListings: 'सक्रिय लिस्टिंग', liveOffers: 'लाइव्ह ऑफर', incomingOffers: 'आलेले डिजिटल ऑफर', review: 'पहा', accept: 'स्वीकारा', accepted: 'स्वीकारले', logistics: 'लॉजिस्टिक्स', storageTransport: 'साठवणूक आणि वाहतूक', paymentsTitle: 'पेमेंटचा मागोवा', support: 'मदत', raiseGrievance: 'तक्रार नोंदवा', buyerEyebrow: 'खरेदीदार डॅशबोर्ड', buyerTitle: 'योग्य दर्जाचा माल वेगाने मिळवा.', buyerBody: 'मिलान, तयार माल आणि विश्वासाच्या आधारे लॉट निवडा जेणेकरून खरेदी टीम पटकन निर्णय घेईल.', demandMatch: 'मागणी जुळणी', bestFit: 'तुमच्या ऑर्डरसाठी योग्य जुळणी', matchingLots: 'जुळणारे लॉट', sortedDemand: 'मागणीनुसार', avgLot: 'सरासरी लॉट दर', nearbyLots: 'जवळच्या लॉटमधून', fastestPickup: 'जलद पिकअप', readyDispatch: 'पाठवणीसाठी तयार', trustScore: 'विश्वास गुण', pastBuyer: 'मागील खरेदीदार रेकॉर्ड', filterLots: 'जुळण्यानुसार लॉट फिल्टर करा', resetFilters: 'फिल्टर रीसेट', matches: 'जुळणी', bestMatch: 'सर्वोत्तम जुळणी', highestPrice: 'सर्वोच्च दर', largestVolume: 'सर्वात मोठे प्रमाण', nearest: 'सर्वात जवळचे', any: 'कोणतेही', readyBy: 'तयार तारीख', recommendedSupply: 'शिफारस केलेला पुरवठा', purchaseProfile: 'खरेदी प्रोफाइल', makeOffer: 'डिजिटल ऑफर द्या', proposedPrice: 'सुचवलेला दर / क्विंटल', terms: 'अटी', notes: 'नोट्स', sendOffer: 'ऑफर पाठवा', offerSent: 'ऑफर पाठवला', bulkVolume: 'मोठ्या प्रमाणातील माल', combineLots: 'जवळचे लॉट एकत्र करा', commitment: 'पेमेंट बांधिलकी', noLots: 'या फिल्टरमध्ये कोणतेही लॉट नाहीत.', widenFilters: 'अंतर वाढवा किंवा किमान प्रमाण कमी करा.', showAll: 'सर्व लॉट दाखवा', aiAssistant: 'AI सहाय्यक', askMarket: 'बाजाराला विचारा', plainAnswer: 'सोपे उत्तर', ask: 'विचारा', login: 'लॉग इन', welcome: 'पुन्हा स्वागत आहे', workspace: 'तुमच्या Haasil कार्यक्षेत्रात जा.', demoAccount: 'डेमो खात्याने प्लॅटफॉर्म पहा. खरी माहिती आवश्यक नाही.', mobileEmail: 'मोबाइल नंबर किंवा ईमेल', password: 'पासवर्ड', opening: 'वर्कस्पेस उघडत आहे...', demoMode: 'डेमो मोड · तुमचा डेटा या ब्राउझरमध्ये राहील', farmerRole: 'शेतकरी / FPO', buyerRole: 'खरेदीदार',
+    marketLinkages: 'बाजार जोडणी', buyerNetwork: 'खरेदीदार नेटवर्क', overview: 'आढावा', prices: 'दर', myLots: 'माझे लॉट', offers: 'ऑफर', discover: 'शोधा', bulk: 'मोठ्या प्रमाणात', payments: 'पेमेंट', switchRole: 'भूमिका बदला', farmerEyebrow: 'शेतकरी / FPO डॅशबोर्ड', farmerTitle: 'अधिक स्पष्ट निर्णय, मजबूत सौदेबाजी.', farmerBody: 'जवळचे मंडी दर, डिजिटल ऑफर आणि तुमच्या पिकासाठी योग्य विक्रीची वेळ एका ठिकाणी पहा.', currentSignal: 'सध्याचा बाजार संकेत', estimated: 'अंदाजे मिळकत', mandiRate: 'सध्याचा मंडी दर', bestOffer: 'सर्वोत्तम ऑफर', processorOffer: 'प्रोसेसर ऑफर', expectedGain: 'अंदाजे फायदा', heldDays: '4 दिवस थांबल्यास', liveLots: 'सक्रिय लॉट', acrossFarm: 'तुमच्या शेत / FPO मधून', priceDiscovery: 'दर शोध', nearbySignal: 'जवळचा बाजार संकेत', live: 'लाइव्ह', marketRate: 'बाजार दर', buyerOffer: 'खरेदीदार ऑफर', digitalTrade: 'डिजिटल व्यापार', aiRecommendation: 'AI सूचना', saleWindow: 'विक्रीची वेळ', listing: 'लिस्टिंग', createLot: 'लॉट तयार करा', crop: 'पीक', quantity: 'प्रमाण (क्विंटल)', qualityGrade: 'दर्जा', location: 'ठिकाण', readyDate: 'तयार तारीख', addLot: 'लॉट बाजारात जोडा', yourLots: 'तुमचे लॉट', activeListings: 'सक्रिय लिस्टिंग', liveOffers: 'लाइव्ह ऑफर', incomingOffers: 'आलेले डिजिटल ऑफर', review: 'पहा', accept: 'स्वीकारा', accepted: 'स्वीकारले', logistics: 'लॉजिस्टिक्स', storageTransport: 'साठवणूक आणि वाहतूक', paymentsTitle: 'पेमेंटचा मागोवा', support: 'मदत', raiseGrievance: 'तक्रार नोंदवा', buyerEyebrow: 'खरेदीदार डॅशबोर्ड', buyerTitle: 'योग्य दर्जाचा माल वेगाने मिळवा.', buyerBody: 'मिलान, तयार माल आणि विश्वासाच्या आधारे लॉट निवडा जेणेकरून खरेदी टीम पटकन निर्णय घेईल.', demandMatch: 'मागणी जुळणी', bestFit: 'तुमच्या ऑर्डरसाठी योग्य जुळणी', matchingLots: 'जुळणारे लॉट', sortedDemand: 'मागणीनुसार', avgLot: 'सरासरी लॉट दर', nearbyLots: 'जवळच्या लॉटमधून', fastestPickup: 'जलद पिकअप', readyDispatch: 'पाठवणीसाठी तयार', trustScore: 'विश्वास गुण', pastBuyer: 'मागील खरेदीदार रेकॉर्ड', filterLots: 'जुळण्यानुसार लॉट फिल्टर करा', resetFilters: 'फिल्टर रीसेट', matches: 'जुळणी', bestMatch: 'सर्वोत्तम जुळणी', highestPrice: 'सर्वोच्च दर', largestVolume: 'सर्वात मोठे प्रमाण', nearest: 'सर्वात जवळचे', any: 'कोणतेही', readyBy: 'तयार तारीख', recommendedSupply: 'शिफारस केलेला पुरवठा', purchaseProfile: 'खरेदी प्रोफाइल', makeOffer: 'डिजिटल ऑफर द्या', proposedPrice: 'सुचवलेला दर / क्विंटल', terms: 'अटी', notes: 'नोट्स', sendOffer: 'ऑफर पाठवा', offerSent: 'ऑफर पाठवला', bulkVolume: 'मोठ्या प्रमाणातील माल', combineLots: 'जवळचे लॉट एकत्र करा', commitment: 'पेमेंट बांधिलकी', noLots: 'या फिल्टरमध्ये कोणतेही लॉट नाहीत.', widenFilters: 'अंतर वाढवा किंवा किमान प्रमाण कमी करा.', showAll: 'सर्व लॉट दाखवा', aiAssistant: 'AI सहाय्यक', askMarket: 'बाजाराला विचारा', plainAnswer: 'सोपे उत्तर', ask: 'विचारा', login: 'लॉग इन', welcome: 'पुन्हा स्वागत आहे', workspace: 'तुमच्या Farmly कार्यक्षेत्रात जा.', demoAccount: 'डेमो खात्याने प्लॅटफॉर्म पहा. खरी माहिती आवश्यक नाही.', mobileEmail: 'मोबाइल नंबर किंवा ईमेल', password: 'पासवर्ड', opening: 'वर्कस्पेस उघडत आहे...', demoMode: 'डेमो मोड · तुमचा डेटा या ब्राउझरमध्ये राहील', farmerRole: 'शेतकरी / FPO', buyerRole: 'खरेदीदार',
   },
 }
 
@@ -541,12 +677,13 @@ function FarmerDashboard({ lots, setLots, setSelectedRole, language, setLanguage
     <div className="dashboard-shell">
       <header className="topbar">
         <div className="brand-wrap">
-          <span className="brand-mark small">Haasil</span>
+          <span className="brand-mark small">Farmly</span>
           <span className="brand-tag">{copy.marketLinkages}</span>
         </div>
 
         <nav className="topnav" aria-label="Dashboard navigation">
           <a href="#overview">{copy.overview}</a>
+          <a href="#intelligence">ENR / 3D</a>
           <a href="#prices">{copy.prices}</a>
           <a href="#lots">{copy.myLots}</a>
           <a href="#offers">{copy.offers}</a>
@@ -590,6 +727,12 @@ function FarmerDashboard({ lots, setLots, setSelectedRole, language, setLanguage
           <StatCard label={copy.bestOffer} value={currency(2680)} detail={copy.processorOffer} tone="green" />
           <StatCard label={copy.expectedGain} value={`+${currency(135)}`} detail={copy.heldDays} tone="soft" />
           <StatCard label={copy.liveLots} value={String(lots.length)} detail={copy.acrossFarm} tone="neutral" />
+        </section>
+
+        <section className="charts-showcase" id="intelligence">
+          <Reveal delay={40} className="panel chart-panel">
+            <PriceCompareChart />
+          </Reveal>
         </section>
 
         <section className="content-grid" id="prices">
@@ -754,7 +897,14 @@ function FarmerDashboard({ lots, setLots, setSelectedRole, language, setLanguage
             </div>
 
             <div className="offer-list">
-              {lotOffers.map((offer) => (
+              {lotOffers.map((offer) => {
+                const net = calcEnr({
+                  price: offer.price,
+                  transport: offer.transport,
+                  storage: offer.storage,
+                  paymentRisk: offer.payment === 'Immediate' ? 10 : offer.payment === '7 days' ? 25 : 45,
+                })
+                return (
                 <div key={offer.id} className="offer-card">
                   <div className="offer-head">
                     <div>
@@ -765,6 +915,10 @@ function FarmerDashboard({ lots, setLots, setSelectedRole, language, setLanguage
                   </div>
 
                   <div className="offer-amount">{currency(offer.price)}/qtl</div>
+                  <div className="offer-enr">
+                    <span>Expected net</span>
+                    <strong>{currency(net)}/qtl</strong>
+                  </div>
 
                   <div className="offer-grid">
                     <span>Transport</span>
@@ -784,7 +938,8 @@ function FarmerDashboard({ lots, setLots, setSelectedRole, language, setLanguage
                     <button type="button" className="primary-btn compact" onClick={() => setAcceptedOffer(offer.id)}>{acceptedOffer === offer.id ? copy.accepted : copy.accept}</button>
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           </Reveal>
 
@@ -922,7 +1077,7 @@ function BuyerDashboard({ setSelectedRole, language, setLanguage, user }) {
     <div className="dashboard-shell">
       <header className="topbar">
         <div className="brand-wrap">
-          <span className="brand-mark small">Haasil</span>
+          <span className="brand-mark small">Farmly</span>
           <span className="brand-tag">{copy.buyerNetwork}</span>
         </div>
 
@@ -1243,10 +1398,10 @@ function LanguagePicker({ language, setLanguage }) {
 
 function AuthModal({ language, setSelectedRole, onAuthenticated, onClose, initialMode = 'login' }) {
   const authLabels = language === 'hi'
-    ? { register: 'रजिस्टर करें', joinWelcome: 'Haasil से जुड़ें', createWorkspace: 'अपना Haasil कार्यक्षेत्र बनाएं', registerBody: 'डेमो खाता बनाएं और अपनी भूमिका के अनुसार कार्यक्षेत्र शुरू करें।', fullName: 'पूरा नाम', createAccount: 'खाता बनाएं' }
+    ? { register: 'रजिस्टर करें', joinWelcome: 'Farmly से जुड़ें', createWorkspace: 'अपना Farmly कार्यक्षेत्र बनाएं', registerBody: 'डेमो खाता बनाएं और अपनी भूमिका के अनुसार कार्यक्षेत्र शुरू करें।', fullName: 'पूरा नाम', createAccount: 'खाता बनाएं' }
     : language === 'mr'
-      ? { register: 'नोंदणी करा', joinWelcome: 'Haasil मध्ये सामील व्हा', createWorkspace: 'तुमचे Haasil कार्यक्षेत्र तयार करा', registerBody: 'डेमो खाते तयार करा आणि तुमच्या भूमिकेनुसार कार्यक्षेत्र सुरू करा.', fullName: 'पूर्ण नाव', createAccount: 'खाते तयार करा' }
-      : { register: 'Register', joinWelcome: 'Join Haasil', createWorkspace: 'Create your Haasil workspace.', registerBody: 'Create a demo account and start with the workspace that fits your role.', fullName: 'Full name', createAccount: 'Create account' }
+      ? { register: 'नोंदणी करा', joinWelcome: 'Farmly मध्ये सामील व्हा', createWorkspace: 'तुमचे Farmly कार्यक्षेत्र तयार करा', registerBody: 'डेमो खाते तयार करा आणि तुमच्या भूमिकेनुसार कार्यक्षेत्र सुरू करा.', fullName: 'पूर्ण नाव', createAccount: 'खाते तयार करा' }
+      : { register: 'Register', joinWelcome: 'Join Farmly', createWorkspace: 'Create your Farmly workspace.', registerBody: 'Create a demo account and start with the workspace that fits your role.', fullName: 'Full name', createAccount: 'Create account' }
   const copy = { ...dashboardCopy[language], ...authLabels }
   const [role, setRole] = useState('farmer')
   const [mode, setMode] = useState(initialMode)
@@ -1296,19 +1451,134 @@ function AuthModal({ language, setSelectedRole, onAuthenticated, onClose, initia
 function ExploreModal({ language, setSelectedRole, onClose }) {
   const copy = dashboardCopy[language]
   return (
-    <div className="login-backdrop" role="dialog" aria-modal="true" aria-label="Explore Haasil">
+    <div className="login-backdrop explore-backdrop" role="dialog" aria-modal="true" aria-label="Explore Farmly">
       <div className="login-modal explore-modal">
         <button type="button" className="modal-close" onClick={onClose} aria-label="Close explorer">×</button>
         <p className="eyebrow accent">{copy.marketLinkages}</p>
         <h2>Choose your marketplace view.</h2>
         <p className="login-subtitle">Explore a role-based demo now. You can register when you are ready to keep your workspace.</p>
         <div className="explore-role-grid">
-          <button type="button" onClick={() => setSelectedRole('farmer')}><strong>{copy.farmerRole}</strong><span>Prices, lots, offers, and sale windows</span><b>↗</b></button>
-          <button type="button" onClick={() => setSelectedRole('buyer')}><strong>{copy.buyerRole}</strong><span>Verified supply, matching, and procurement</span><b>↗</b></button>
+          <button type="button" className="explore-role-card" onClick={() => setSelectedRole('farmer')}>
+            <strong>{copy.farmerRole}</strong>
+            <span>Prices, lots, offers, and sale windows</span>
+            <b>↗</b>
+          </button>
+          <button type="button" className="explore-role-card" onClick={() => setSelectedRole('buyer')}>
+            <strong>{copy.buyerRole}</strong>
+            <span>Verified supply, matching, and procurement</span>
+            <b>↗</b>
+          </button>
         </div>
-        <button type="button" className="secondary-btn wide" onClick={onClose}>Back to Haasil</button>
+        <button type="button" className="secondary-btn wide" onClick={onClose}>Back to Farmly</button>
       </div>
     </div>
+  )
+}
+
+function LandingAICoach({ copy, onExploreWorkspace }) {
+  const [messages, setMessages] = useState([
+    { role: 'user', text: 'Should I sell my soybean today?' },
+    {
+      role: 'coach',
+      title: 'My read: hold 4 days.',
+      text: 'Prices are moving up. Your storage window is safe, and the best offer is currently ₹2,680/qtl.',
+      meta: 'Based on 5 local signals',
+    },
+  ])
+  const [draft, setDraft] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  const ask = (raw) => {
+    const question = (raw || draft).trim()
+    if (!question || busy) return
+    setBusy(true)
+    setMessages((current) => [...current, { role: 'user', text: question }])
+    setDraft('')
+    window.setTimeout(() => {
+      const reply = getNLQueryResponse(question)
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'coach',
+          title: 'Farmly coach',
+          text: reply,
+          meta: 'Demo answer · grounded in sample Beed market data',
+        },
+      ])
+      setBusy(false)
+    }, 380)
+  }
+
+  return (
+    <section className="ai-section" id="ai-coach">
+      <div className="ai-copy">
+        <p className="landing-eyebrow">{copy.aiEyebrow}</p>
+        <h2>{copy.aiTitle}</h2>
+        <p>{copy.aiBody}</p>
+        <div className="ai-cta-row">
+          <button
+            type="button"
+            className="light-button"
+            onClick={() => {
+              document.getElementById('ai-coach-input')?.focus()
+              ask('When should I sell my soybean?')
+            }}
+          >
+            {copy.aiCta}
+            <span>↗</span>
+          </button>
+          <button type="button" className="ghost-light-btn" onClick={onExploreWorkspace}>
+            Open full workspace
+          </button>
+        </div>
+      </div>
+
+      <div className="ai-chat">
+        <div className="chat-top">
+          <span className="ai-spark">✦</span>
+          <div>
+            <strong>Farmly Coach</strong>
+            <small>Market intelligence · online</small>
+          </div>
+          <span className="chat-menu">•••</span>
+        </div>
+
+        <div className="chat-thread">
+          {messages.map((message, index) =>
+            message.role === 'user' ? (
+              <div className="chat-message user-message" key={`u-${index}`}>{message.text}</div>
+            ) : (
+              <div className="chat-message coach-message" key={`c-${index}`}>
+                <span>✦</span>
+                <div>
+                  <strong>{message.title}</strong>
+                  <p>{message.text}</p>
+                  <em>{message.meta}</em>
+                </div>
+              </div>
+            ),
+          )}
+        </div>
+
+        <form
+          className="chat-input-form"
+          onSubmit={(event) => {
+            event.preventDefault()
+            ask()
+          }}
+        >
+          <input
+            id="ai-coach-input"
+            type="text"
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            placeholder="Ask about a crop, price, or buyer"
+            aria-label="Ask the market"
+          />
+          <button type="submit" disabled={busy || !draft.trim()}>↑</button>
+        </form>
+      </div>
+    </section>
   )
 }
 
@@ -1322,114 +1592,58 @@ function DashboardPreview() {
   const selected = metrics[selectedMetric]
 
   return (
-    <div className="preview-window">
-      <div className="preview-topbar"><span className="preview-brand">Haasil <small>farmer workspace</small></span><span className="preview-live">● Live market</span></div>
-      <div className="preview-body">
-        <div className="preview-copy"><span className="preview-kicker">Today’s signal</span><strong>₹2,450<span>/qtl</span></strong><small>Soybean · Beed Mandi <b>+1.8%</b></small><p className="preview-insight">{selected.detail}</p></div>
-        <div className="preview-chart"><span className="chart-line" /><i>₹2,680 best offer</i></div>
-        <div className="preview-metrics">
-          {Object.entries(metrics).map(([key, metric]) => <button type="button" className={selectedMetric === key ? 'is-selected' : ''} key={key} onClick={() => setSelectedMetric(key)}><small>{metric.label}</small><strong>{metric.value}</strong></button>)}
+    <div className="overflow-hidden rounded-2xl border border-[#1f4d3a]/20 bg-[#123628] shadow-[0_20px_48px_rgba(18,53,40,0.22)]">
+      <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
+        <span className="text-sm font-semibold text-[#f7f3e9]">
+          Farmly <small className="ml-1 text-[0.58rem] font-bold uppercase tracking-[0.12em] text-white/45">farmer workspace</small>
+        </span>
+        <span className="text-[0.68rem] font-semibold text-emerald-300">● Live market</span>
+      </div>
+      <div className="grid gap-3 p-4 sm:grid-cols-[0.95fr_1.05fr]">
+        <div>
+          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/45">Today’s signal</p>
+          <p className="mt-1 text-3xl font-bold tracking-tight text-white">
+            ₹2,450<span className="ml-1 text-xs font-medium text-white/45">/qtl</span>
+          </p>
+          <p className="mt-1 text-xs text-white/55">
+            Soybean · Beed Mandi <b className="ml-1 text-emerald-300">+1.8%</b>
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-white/65">{selected.detail}</p>
+        </div>
+        <div className="relative min-h-[120px] rounded-xl border border-white/10 bg-white/5 p-3">
+          <svg viewBox="0 0 220 90" className="h-full w-full" aria-hidden="true">
+            <defs>
+              <linearGradient id="previewFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#e8b84b" stopOpacity="0.35" />
+                <stop offset="100%" stopColor="#e8b84b" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <path d="M8 70 L45 58 L80 62 L115 40 L150 46 L210 18 L210 90 L8 90 Z" fill="url(#previewFill)" />
+            <path d="M8 70 L45 58 L80 62 L115 40 L150 46 L210 18" fill="none" stroke="#e8b84b" strokeWidth="2.5" strokeLinecap="round" />
+            <circle cx="210" cy="18" r="4" fill="#e8b84b" />
+          </svg>
+          <span className="absolute right-3 top-2 text-[0.65rem] font-semibold text-[#e8b84b]">₹2,680 best offer</span>
+        </div>
+        <div className="grid grid-cols-3 gap-2 sm:col-span-2">
+          {Object.entries(metrics).map(([key, metric]) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setSelectedMetric(key)}
+              className={`rounded-xl border px-3 py-2.5 text-left transition ${
+                selectedMetric === key
+                  ? 'border-[#e8b84b]/50 bg-[#e8b84b]/15'
+                  : 'border-white/10 bg-white/5 hover:bg-white/8'
+              }`}
+            >
+              <small className="block text-[0.58rem] uppercase tracking-wide text-white/45">{metric.label}</small>
+              <strong className="mt-1 block text-sm font-semibold text-white">{metric.value}</strong>
+            </button>
+          ))}
         </div>
       </div>
     </div>
   )
-}
-
-function InteractiveMarketScene() {
-  const canvasRef = useRef(null)
-
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return undefined
-
-    const scene = new THREE.Scene()
-    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100)
-    camera.position.set(0, 1.6, 7)
-
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
-    renderer.setSize(canvas.clientWidth, canvas.clientHeight, false)
-    renderer.outputColorSpace = THREE.SRGBColorSpace
-
-    scene.add(new THREE.AmbientLight(0xcfe8c4, 2.2))
-    const keyLight = new THREE.PointLight(0xe8b84b, 12, 12)
-    keyLight.position.set(2, 4, 4)
-    scene.add(keyLight)
-
-    const field = new THREE.Group()
-    const grid = new THREE.GridHelper(6, 18, 0x5d9775, 0x2a654d)
-    grid.rotation.x = 0.18
-    field.add(grid)
-
-    const nodeGeometry = new THREE.SphereGeometry(0.12, 16, 16)
-    const nodeMaterials = [0xe8b84b, 0x8fd69c, 0xf7f3e9].map((color) => new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.25 }))
-    const nodePositions = [[-2, 0.25, 0.4], [-0.7, 0.5, -0.6], [0.8, 0.32, 0.4], [1.9, 0.65, -0.4], [0, 0.95, 0]]
-    nodePositions.forEach(([x, y, z], index) => {
-      const node = new THREE.Mesh(nodeGeometry, nodeMaterials[index % nodeMaterials.length])
-      node.position.set(x, y, z)
-      node.userData.baseY = y
-      field.add(node)
-    })
-
-    const lineMaterial = new THREE.LineBasicMaterial({ color: 0xe8b84b, transparent: true, opacity: 0.5 })
-    const links = [[0, 1], [1, 2], [2, 3], [1, 4], [4, 2]]
-    links.forEach(([from, to]) => {
-      const points = [new THREE.Vector3(...nodePositions[from]), new THREE.Vector3(...nodePositions[to])]
-      field.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), lineMaterial))
-    })
-    scene.add(field)
-
-    const pointer = { x: 0, y: 0 }
-    const drag = { active: false, x: 0, y: 0, rotationX: 0, rotationY: 0 }
-    const handlePointer = (event) => {
-      const bounds = canvas.getBoundingClientRect()
-      pointer.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1
-      pointer.y = -(((event.clientY - bounds.top) / bounds.height) * 2 - 1)
-      if (drag.active) {
-        drag.rotationY += (event.clientX - drag.x) * 0.012
-        drag.rotationX += (event.clientY - drag.y) * 0.008
-        drag.x = event.clientX
-        drag.y = event.clientY
-      }
-    }
-    const handlePointerDown = (event) => { drag.active = true; drag.x = event.clientX; drag.y = event.clientY; canvas.setPointerCapture(event.pointerId) }
-    const handlePointerUp = (event) => { drag.active = false; canvas.releasePointerCapture(event.pointerId) }
-    const handleWheel = (event) => { camera.position.z = THREE.MathUtils.clamp(camera.position.z + event.deltaY * 0.004, 4.8, 9) }
-    canvas.addEventListener('pointermove', handlePointer)
-    canvas.addEventListener('pointerdown', handlePointerDown)
-    canvas.addEventListener('pointerup', handlePointerUp)
-    canvas.addEventListener('pointercancel', handlePointerUp)
-    canvas.addEventListener('wheel', handleWheel, { passive: true })
-
-    let frameId
-    const startedAt = performance.now()
-    const animate = (now) => {
-      const elapsed = (now - startedAt) * 0.001
-      field.rotation.y = drag.rotationY + Math.sin(elapsed * 0.25) * 0.04 + pointer.x * 0.02
-      field.rotation.x = drag.rotationX * 0.5 + pointer.y * 0.06
-      field.children.forEach((child, index) => {
-        if (child.isMesh && child.userData.baseY) child.position.y = child.userData.baseY + Math.sin(elapsed * 1.8 + index) * 0.05
-      })
-      renderer.render(scene, camera)
-      frameId = requestAnimationFrame(animate)
-    }
-    frameId = requestAnimationFrame(animate)
-
-    return () => {
-      cancelAnimationFrame(frameId)
-      canvas.removeEventListener('pointermove', handlePointer)
-      canvas.removeEventListener('pointerdown', handlePointerDown)
-      canvas.removeEventListener('pointerup', handlePointerUp)
-      canvas.removeEventListener('pointercancel', handlePointerUp)
-      canvas.removeEventListener('wheel', handleWheel)
-      renderer.dispose()
-      nodeGeometry.dispose()
-      nodeMaterials.forEach((material) => material.dispose())
-      lineMaterial.dispose()
-    }
-  }, [])
-
-  return <div className="three-market-card"><div className="three-label"><span>3D market pulse</span><small>Drag to explore · scroll to zoom</small></div><canvas ref={canvasRef} aria-label="Interactive 3D market network" /></div>
 }
 
 function LandingPage({ language, setLanguage, onLogin, onRegister, onExplore }) {
@@ -1439,7 +1653,7 @@ function LandingPage({ language, setLanguage, onLogin, onRegister, onExplore }) 
   useEffect(() => {
     const root = landingRef.current
     if (!root) return undefined
-    const revealItems = root.querySelectorAll('.landing-hero, .trust-strip, .landing-section, .ai-section, .final-cta')
+    const revealItems = root.querySelectorAll('.landing-hero, .trusted-strip, .landing-section, .ai-section, .final-cta')
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -1455,19 +1669,213 @@ function LandingPage({ language, setLanguage, onLogin, onRegister, onExplore }) 
 
   return (
     <div className="landing-page" ref={landingRef}>
-      <header className="landing-nav"><a className="landing-brand" href="#top"><span>Haasil</span><small>market linkages</small></a><nav className="landing-links" aria-label="Primary navigation"><a href="#how-it-works">{copy.nav[0]}</a><a href="#features">{copy.nav[1]}</a><a href="#features">{copy.nav[2]}</a><a href="#ai-coach">{copy.nav[3]}</a></nav><div className="landing-actions"><LanguagePicker language={language} setLanguage={setLanguage} /><button type="button" className="primary-btn nav-cta" onClick={onRegister}>{copy.cta}<span>↗</span></button></div></header>
+      <header className="landing-nav"><a className="landing-brand" href="#top"><span>Farmly</span><small>market linkages</small></a><nav className="landing-links" aria-label="Primary navigation"><a href="#how-it-works">{copy.nav[0]}</a><a href="#features">{copy.nav[1]}</a><a href="#market-pulse">Prices</a><a href="#ai-coach">{copy.nav[3]}</a></nav><div className="landing-actions"><LanguagePicker language={language} setLanguage={setLanguage} /><button type="button" className="primary-btn nav-cta" onClick={onRegister}>{copy.cta}<span>↗</span></button></div></header>
       <main id="top">
-        <section className="landing-hero"><div className="hero-orbit orbit-one" /><div className="hero-orbit orbit-two" /><div className="hero-content"><p className="landing-eyebrow">{copy.eyebrow} <span>•</span> 01</p><h1>{copy.title}</h1><p className="landing-intro">{copy.intro}</p><div className="hero-actions"><button type="button" className="primary-btn hero-button" onClick={onExplore}>{copy.primary}<span>↗</span></button><a className="text-link" href="#how-it-works">{copy.secondary} <span>↓</span></a></div><p className="hero-trust"><span className="trust-avatars"><i>MP</i><i>AK</i><i>SD</i></span>{copy.trusted}</p></div><div className="hero-art"><div className="art-label"><span className="pulse-dot" /> Live sourcing map</div><div className="map-grid"><span className="map-route route-one" /><span className="map-route route-two" /><span className="map-pin pin-one">₹</span><span className="map-pin pin-two">●</span><span className="map-pin pin-three">₹</span><div className="map-card"><small>Best nearby offer</small><strong>₹2,680 <span>/qtl</span></strong><em>AgroTrade Processors <b>↑ 4.2%</b></em></div></div></div></section>
-        <section className="trust-strip"><p>{copy.trusted}</p><div className="trust-logos"><span>FPO NETWORK</span><span>AGROTRADE</span><span>SAHYADRI FOODS</span><span>MAHA PULSE CO.</span></div></section>
-        <section className="landing-section stats-section"><div className="section-intro"><p className="landing-eyebrow">The Haasil effect</p><h2>{effectCopy[language].title}<br /><em>{effectCopy[language].accent}</em></h2></div><div className="landing-stats">{copy.stats.map(([value, label]) => <div className="landing-stat" key={label}><strong>{value}</strong><span>{label}</span></div>)}</div></section>
+        <section className="landing-hero landing-hero-premium">
+          <div className="hero-content">
+            <p className="landing-eyebrow">{copy.eyebrow} <span>•</span> 01</p>
+            <h1>{copy.title}</h1>
+            <p className="landing-intro">{copy.intro}</p>
+            <div className="hero-actions">
+              <button type="button" className="primary-btn hero-button" onClick={onExplore}>{copy.primary}<span>↗</span></button>
+              <a className="text-link" href="#market-pulse">{copy.secondary} <span>↓</span></a>
+            </div>
+            <p className="hero-trust"><span className="trust-avatars"><i>MP</i><i>AK</i><i>SD</i></span>{copy.trusted}</p>
+          </div>
+          <div className="hero-art">
+            <LandingHeroPanel />
+          </div>
+        </section>
+        <div className="trusted-strip">
+  <div className="rtl-marquee">
+
+    <div className="trusted-copy">
+      Built for the people who grow and move India's food.
+    </div>
+
+    <div className="trusted-partner">
+      FPO NETWORK
+    </div>
+
+    <div className="trusted-partner">
+      AGROTRADE
+    </div>
+
+    <div className="trusted-partner">
+      SAHYADRI FOODS
+    </div>
+
+    <div className="trusted-partner">
+      MAHA PULSE CO.
+    </div>
+
+    {/* Duplicate for seamless infinite loop */}
+
+    <div className="trusted-copy">
+      Built for the people who grow and move India's food.
+    </div>
+
+    <div className="trusted-partner">
+      FPO NETWORK
+    </div>
+
+    <div className="trusted-partner">
+      AGROTRADE
+    </div>
+
+    <div className="trusted-partner">
+      SAHYADRI FOODS
+    </div>
+
+    <div className="trusted-partner">
+      MAHA PULSE CO.
+    </div>
+
+  </div>
+</div>
+        <section className="landing-section stats-section">
+  <div className="section-intro">
+    <p className="landing-eyebrow">The Farmly effect</p>
+
+    <h2>
+      {effectCopy[language].title}
+      <br />
+      <em>{effectCopy[language].accent}</em>
+    </h2>
+  </div>
+
+  <div className="landing-stats">
+    <AnimatedStat
+      value={2680}
+      label={copy.stats[0][1]}
+      type="price"
+      delay={0}
+    />
+
+    <AnimatedStat
+      value={94}
+      label={copy.stats[1][1]}
+      type="percent"
+      delay={120}
+    />
+
+    <AnimatedStat
+      value={18}
+      label={copy.stats[2][1]}
+      type="minutes"
+      delay={240}
+    />
+
+    <AnimatedStat
+      value={3200}
+      label={copy.stats[3][1]}
+      type="members"
+      delay={360}
+    />
+  </div>
+</section>
         <section className="landing-section feature-section" id="features"><div className="section-intro centered"><p className="landing-eyebrow">{copy.featuresEyebrow}</p><h2>{copy.featuresTitle}</h2></div><div className="feature-grid">{copy.features.map(([number, title, body]) => <article className="feature-card" key={number}><span className="feature-number">{number}</span><div><h3>{title}</h3><p>{body}</p></div><span className="feature-arrow">↗</span></article>)}</div></section>
         <section className="landing-section how-section" id="how-it-works"><div className="section-intro"><p className="landing-eyebrow">{copy.howEyebrow}</p><h2>{copy.howTitle}</h2></div><div className="how-grid">{copy.how.map(([number, title, body], index) => <article className="how-card" key={number}><div className="how-number">{number}<span>{index < 2 ? '→' : '✓'}</span></div><h3>{title}</h3><p>{body}</p></article>)}</div></section>
-        <section className="landing-section preview-section"><div className="preview-heading"><p className="landing-eyebrow">{copy.previewEyebrow}</p><h2>{copy.previewTitle}</h2><p>One calm view of prices, offers, quality, logistics, and the decision in front of you.</p></div><InteractiveMarketScene /><DashboardPreview /></section>
-        <section className="ai-section" id="ai-coach"><div className="ai-copy"><p className="landing-eyebrow">{copy.aiEyebrow}</p><h2>{copy.aiTitle}</h2><p>{copy.aiBody}</p><button type="button" className="light-button" onClick={onExplore}>{copy.aiCta}<span>↗</span></button></div><div className="ai-chat"><div className="chat-top"><span className="ai-spark">✦</span><div><strong>Haasil Coach</strong><small>Market intelligence · online</small></div><span className="chat-menu">•••</span></div><div className="chat-message user-message">Should I sell my soybean today?</div><div className="chat-message coach-message"><span>✦</span><div><strong>My read: hold 4 days.</strong><p>Prices are moving up. Your storage window is safe, and the best offer is currently ₹2,680/qtl.</p><em>Based on 5 local signals</em></div></div><div className="chat-input">Ask about a crop, price, or buyer <span>↑</span></div></div></section>
-        <section className="landing-section social-section"><div className="section-intro centered"><p className="landing-eyebrow">{copy.testimonialsEyebrow}</p><h2>{copy.testimonialsTitle}</h2></div><div className="testimonial-grid">{copy.testimonials.map(([quote, name, role]) => <article className="testimonial-card" key={name}><div className="quote-mark">“</div><p>{quote}</p><footer><span className="testimonial-avatar">{name.split(' ').map((part) => part[0]).join('')}</span><span><strong>{name}</strong><small>{role}</small></span></footer></article>)}</div></section>
-        <section className="final-cta"><div><p className="landing-eyebrow">Ready when your harvest is</p><h2>{copy.finalTitle}</h2><p>{copy.finalBody}</p></div><button type="button" className="light-button" onClick={onRegister}>{copy.cta}<span>↗</span></button></section>
+
+        <section className="landing-section market-pulse-section" id="market-pulse">
+          <div className="section-intro mx-auto max-w-2xl text-center">
+            <p className="landing-eyebrow">Price discovery</p>
+            <h2 className="font-display">See the market move before you sell.</h2>
+            <p className="mx-auto mt-2 max-w-lg text-sm text-white/65">Compare crop trends and the mandi heat matrix — then open the workspace for full ENR ranking.</p>
+          </div>
+          <div className="mx-auto mt-6 grid max-w-5xl gap-4 px-4 lg:grid-cols-[1.35fr_0.65fr]">
+            <LandingPriceGraph />
+            <div className="flex flex-col gap-2.5">
+              <article className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                <span className="text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-white/50">Mandi</span>
+                <strong className="mt-1 block text-xl font-semibold text-white">₹2,450</strong>
+                <small className="text-xs text-white/50">Beed yard · today</small>
+              </article>
+              <article className="rounded-xl border border-farm-gold/35 bg-gradient-to-br from-farm-gold/20 to-farm-mid/30 px-4 py-3">
+                <span className="text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-farm-gold">Best net path</span>
+                <strong className="mt-1 block text-xl font-semibold text-white">₹2,470 ENR</strong>
+                <small className="text-xs text-white/65">Processor after costs</small>
+              </article>
+              <article className="rounded-xl border border-white/10 bg-white/5 px-4 py-3">
+                <span className="text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-white/50">Sale window</span>
+                <strong className="mt-1 block text-xl font-semibold text-white">Hold 4 days</strong>
+                <small className="text-xs text-white/50">Trend still rising</small>
+              </article>
+              <article className="rounded-xl border border-emerald-400/20 bg-emerald-500/10 px-3 py-2.5 text-xs leading-relaxed text-emerald-100/90">
+                Tip: gold cells are peak yards — compare with ENR, not board price alone.
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section className="landing-section preview-section !bg-[#dce5d8]">
+          <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div className="preview-heading !p-0">
+              <p className="landing-eyebrow">{copy.previewEyebrow}</p>
+              <h2 className="!max-w-[16ch]">{copy.previewTitle}</h2>
+              <p className="mt-2 max-w-md text-sm leading-relaxed text-[#4a5f52]">
+                One calm view of prices, offers, quality, logistics, and the decision in front of you.
+              </p>
+              <div className="mt-5 hidden lg:block">
+                <InteractiveMarketScene />
+              </div>
+            </div>
+            <div className="space-y-4">
+              <DashboardPreview />
+              <div className="lg:hidden">
+                <InteractiveMarketScene />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <LandingAICoach copy={copy} onExploreWorkspace={onExplore} />
+
+        <section className="landing-section social-section !bg-[#f4f1ea]">
+          <div className="mx-auto max-w-5xl">
+            <div className="section-intro centered mx-auto max-w-xl">
+              <p className="landing-eyebrow">{copy.testimonialsEyebrow}</p>
+              <h2 className="!mx-auto !max-w-[16ch]">{copy.testimonialsTitle}</h2>
+            </div>
+            <div className="mt-8 grid gap-4 md:grid-cols-2">
+              {copy.testimonials.map(([quote, name, role]) => (
+                <article
+                  key={name}
+                  className="rounded-2xl border border-[#1f4d3a]/12 bg-white p-5 shadow-[0_12px_32px_rgba(20,53,40,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(20,53,40,0.12)]"
+                >
+                  <div className="text-3xl font-bold leading-none text-[#b17b2b]">“</div>
+                  <p className="mt-2 text-[0.98rem] leading-relaxed text-[#355345]">{quote}</p>
+                  <footer className="mt-5 flex items-center gap-3">
+                    <span className="grid h-9 w-9 place-items-center rounded-full bg-[#d9b460] text-xs font-bold text-[#19382a]">
+                      {name.split(' ').map((part) => part[0]).join('')}
+                    </span>
+                    <span>
+                      <strong className="block text-sm text-[#143528]">{name}</strong>
+                      <small className="text-xs text-[#748579]">{role}</small>
+                    </span>
+                  </footer>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="final-cta relative overflow-hidden !bg-gradient-to-br from-[#163d2c] via-[#1a4a35] to-[#0f2a20] !text-white !py-10">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,rgba(212,160,23,0.2),transparent_42%)]" />
+          <div className="relative z-[1] mx-auto flex w-full max-w-5xl flex-col items-start justify-between gap-5 rounded-2xl border border-white/10 bg-white/5 px-5 py-6 backdrop-blur-sm sm:px-7 lg:flex-row lg:items-center">
+            <div className="max-w-xl">
+              <p className="!text-farm-gold landing-eyebrow">Ready when your harvest is</p>
+              <h2 className="!mt-2 !max-w-[18ch] !text-[clamp(1.55rem,2.8vw,2.2rem)] !leading-snug !text-white">{copy.finalTitle}</h2>
+              <p className="!mt-2 !max-w-md !text-sm !leading-relaxed !text-white/65">{copy.finalBody}</p>
+            </div>
+            <button type="button" className="light-button !mt-0 shrink-0 !bg-farm-gold !text-farm-ink shadow-lg shadow-black/20" onClick={onRegister}>
+              {copy.cta}
+              <span>↗</span>
+            </button>
+          </div>
+        </section>
       </main>
-      <footer className="landing-footer"><a className="landing-brand" href="#top"><span>Haasil</span><small>market linkages</small></a><p>{copy.footer}</p><div><a href="#features">Product</a><a href="#ai-coach">AI coach</a></div></footer>
+      <LandingFooter footerText={copy.footer} onRegister={onRegister} />
     </div>
   )
 }

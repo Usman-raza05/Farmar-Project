@@ -1,6 +1,6 @@
-# Haasil
+# Farmly
 
-Haasil is a premium market-linkage prototype for farmers, FPOs, and produce buyers. It combines nearby price discovery, transparent offers, lot matching, logistics, settlement tracking, and mock AI guidance in one workflow.
+Farmly is a premium market-linkage prototype for farmers, FPOs, and produce buyers. It combines nearby price discovery, transparent offers, lot matching, logistics, settlement tracking, and mock AI guidance in one workflow.
 
 The app supports Supabase authentication and marketplace persistence when environment variables are configured. Without Supabase credentials it remains usable in demo mode with local mock data.
 
@@ -71,21 +71,36 @@ Choose a role from the opening screen:
 
 ```
 Farmar-Project/
-├── public/          # Static assets
+├── SIH_PLAN.md      # SIH26132 build plan, demo script, phases
+├── AI_CONTEXT.md    # Architecture + ENR + API map for builders/agents
+├── guide.md         # Product purpose (short)
+├── public/
 ├── src/
-│   ├── App.jsx      # Landing, auth, farmer dashboard, buyer dashboard, and mock intelligence
-│   ├── index.css    # Theme, responsive layout, dashboard components, and states
-│   ├── lib/         # Supabase client and marketplace data-access functions
-│   └── main.jsx     # React entry point
-├── supabase/
-│   └── schema.sql   # Tables and row-level security policies
-├── index.html
+│   ├── App.jsx
+│   ├── components/charts/   # ENR compare + 3D market surface
+│   ├── lib/                 # API + ENR helpers
+│   ├── index.css
+│   └── main.jsx
+├── supabase/        # Legacy optional persistence (migrating to own FastAPI)
 ├── package.json
 └── vite.config.js
 ```
 
+## Stack notes
+
+- **Tailwind CSS v4** via `@tailwindcss/vite` (`src/tailwind.css`)
+- Fonts: **Outfit** (clean UI type)
+- Existing CSS (`index.css`, `ui-refresh.css`) still powers dashboards
+
+## Planning docs
+
+- [`SIH_PLAN.md`](SIH_PLAN.md) — hackathon plan and prototype checklist  
+- [`AI_CONTEXT.md`](AI_CONTEXT.md) — system architecture for AI/backend work  
+- [`guide.md`](guide.md) — simple product narrative  
+
 ## Current implementation notes
 
 - Demo mode is local to the browser session when Supabase is not configured.
-- With Supabase configured, authentication and farmer lot creation/loading are persisted remotely.
+- Farmer dashboard includes **ENR price compare** and a **3D mandi surface** chart.
+- Target stack is **React + FastAPI + PostgreSQL** (own backend); Supabase is transitional.
 - `npm run build` is the quickest production validation command.

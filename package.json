@@ -1,5 +1,5 @@
 {
-  "name": "haasil",
+  "name": "farmly",
   "private": true,
   "version": "0.0.1",
   "type": "module",
@@ -15,7 +15,9 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-react": "^4.5.2",
+    "tailwindcss": "^4.3.3",
     "vite": "^6.3.5"
   }
 }
